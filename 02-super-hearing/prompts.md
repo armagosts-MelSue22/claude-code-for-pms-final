@@ -15,7 +15,13 @@ built from your own questions.
 ---
 
 ### 1.
+Revise into a single table that summarizes everything
 
 ### 2.
+If both piles are telling the truth, how can they both be right?
 
 ### 3.
+Go back to the tables and summarize into a single table. Be succinct
+
+### 4.
+If both the interviews and tickets are telling the truth, how can they both be right?
