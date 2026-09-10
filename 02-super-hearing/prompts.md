@@ -25,3 +25,75 @@ Go back to the tables and summarize into a single table. Be succinct
 
 ### 4.
 If both the interviews and tickets are telling the truth, how can they both be right?
+
+### 5.
+What are the problem tickets? and interviews with customers? add these to Claude.md so you can easily find them later
+
+### 6.
+Prioritize my feedback by criticality to address and give me an executive summary. This data is too extensive, I need you to be brief.
+
+### 7.
+Give me a graphical representation of the feedback
+
+### 8.
+How would you group interviewee categories, what roles are they, what are the definitions of the roles of the people who were interviewed?
+
+### 9.
+What questions did we ask the interviewees?
+
+### 10.
+Based on the interviews, the trouble with version 4.2 is____ (fill in the blank)
+
+### 11.
+What was the common pain point raised across all interviews? Tell me in a paragraph or less
+
+### 12.
+Act as a colleague who is the expert on all of these interviews, where would you focus your efforts for product improvements based on all of the feedback provided?
+
+### 13.
+Based on the interviews, what is the perceived biggest pain point with version 4.2 that should be addressed?
+
+### 14.
+What was the goal of the interiews?
+
+### 15.
+What is the main trouble with 4.2 since August 12 based on interviews? Give me a short sentence
+
+### 16.
+Based on the interviews, give me a single table that gives me a list of problems in 4. 2 that would be priority to fix, in order. Keep it short and base it only on real responses, not perceived noise. Include a column in the table that references interview feedback as to why its importance is perceived
+
+### 17.
+What is the biggest trouble with 4.2, in a single table entry that tells me what the problem is, why it's most important, and what from the feedback showed overwhelmingly that it was a problem shipped with 4.2 that wasn't introduced before
+
+### 18.
+Are there any items that are low hanging fruit that should be "just do it" items, which might not fall into the top priorities but could improve the results of user interviews the next time?
+
+### 19.
+What showed up after August 12 that wasn't there before
+
+### 20.
+Read everything in 00-rook/feedback/tickets/. Same treatment as before: group them, tell me how many are in each group, and quote one line from each.
+
+### 21.
+Who filed these? Give me a list of names and how many of them filed each.
+
+### 22.
+What's different about the ticket responses from what the interviews turned up about the key problem in release 4.2 release on august 12
+
+### 23.
+What problems did the tickets surface with release 4.2 on august 12?
+
+### 24.
+Compare in a table the ticket responses with the interview responses and what feedback they give us about release 4.2 Aug 12
+
+### 25.
+What does the "verdict against the callout data" column mean
+
+### 26.
+Give me a list of my last 5 prompts
+
+### 27.
+Does the table change if you only look at tickets after August 13?
+
+### 28.
+Does the table change if you only look at tickets after August 12?
