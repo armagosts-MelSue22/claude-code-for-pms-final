@@ -80,6 +80,13 @@ This file was already in the repo and materially changes several conclusions abo
 - **Correction to the bullet above about the loop:** the "long silence → then a vanished offer" sequence holds for **The Undertow only**, not the five responders listed in the tickets section. The other four received more offers, not fewer. The loop mechanism is still plausible but now rests on Farlight, The Undertow, Vesper and Meteor Mite — two of whom never filed.
 - **Zero of 25 tickets mention the console**, while 4 of 4 interviews raise UI problems. Judged by the support queue alone the console looks flawless, which is why Sofia's redesign work can't be prioritized off ticket volume.
 
+### Added 15 Sep 2026 — after cross-referencing tickets/interviews against the CSV and reading the routing code line by line
+- **Director-ready metric, cross-checked and holding up:** 25% of responders (4 of 16) now get 80%+ fewer offers than before 4.2, while total offer volume across the roster stayed flat. This survives the ticket/interview cross-check — it isn't a ticket-queue artifact, since two of the four worst-hit (Vesper, Meteor Mite) filed zero tickets and only surfaced via Sofia's interviews.
+- **Found the actual mechanism in code, not just hypothesized it:** `history.py`'s recent-acceptance score never decays back toward neutral on its own — a 2019 TODO asking exactly this was left unresolved ("leaving it as-is for now"). Recovery per accepted callout (+0.08) is smaller than the penalty per decline-or-timeout (−0.12), and a suppressed responder can only earn an accept if they first rank high enough to be offered something — a closed loop with no built-in exit besides a lucky nearby incident.
+- **This — not the timeout cut — looks like the main product problem 4.2 caused.** The 60s timeout explains the "offer vanished" tickets, which hit winners and losers alike. The no-way-back scoring trap is what explains the sharpest, most-corroborated cases (Farlight, The Undertow, Vesper, Meteor Mite) and why the ticket queue keeps splitting into contradictory halves.
+- **Candidate fix, not built or run past anyone yet:** let the recent-acceptance score ease back toward neutral for responders who've had few chances recently, instead of leaving it parked at the floor indefinitely. Deliberately doesn't touch the proximity/history reweighting itself, so it doesn't reopen Priya's "don't relitigate 4.2" warning — it only fixes the missing recovery path.
+- **Built a Director-facing chart:** `00-rook/analysis/4.2-offer-redistribution.html` — a diverging bar chart of % change per responder before/after 4.2, with the 25% figure called out, a table-view fallback, and dark mode. Validated colorblind-safe.
+
 ---
 
 ## Where the source material lives

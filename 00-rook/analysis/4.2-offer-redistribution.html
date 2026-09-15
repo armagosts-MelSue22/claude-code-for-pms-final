@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rook Dispatch — 4.2 offer redistribution</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page:           #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-loss:    #e34948;
+    --series-gain:    #2a78d6;
+    --midpoint:       #f0efec;
+  }
+  :root[data-theme="dark"] .viz-root,
+  :root:where(:not([data-theme="light"])) .viz-root {
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      --surface-1:      #1a1a19;
+      --page:           #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-loss:    #e66767;
+      --series-gain:    #3987e5;
+      --midpoint:       #383835;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    --surface-1:      #1a1a19;
+    --page:           #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-loss:    #e66767;
+    --series-gain:    #3987e5;
+    --midpoint:       #383835;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--text-primary);
+  }
+  .viz-root {
+    max-width: 880px;
+    margin: 32px auto;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px 24px;
+  }
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+  h1 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    color: var(--text-primary);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 2px;
+    max-width: 620px;
+    line-height: 1.45;
+  }
+  .callout {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 10px 0 18px;
+    padding: 8px 12px;
+    border-left: 3px solid var(--series-loss);
+    background: color-mix(in srgb, var(--series-loss) 8%, transparent);
+    border-radius: 0 6px 6px 0;
+  }
+  .callout strong { color: var(--text-primary); }
+
+  .theme-toggle {
+    font: inherit;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .theme-toggle:hover { color: var(--text-primary); }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin: 4px 0 22px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+
+  .chart-scale {
+    position: relative;
+    height: 18px;
+    margin-left: 168px;
+    margin-bottom: 2px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .scale-tick {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+  }
+
+  .rows { position: relative; }
+  .row {
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    align-items: center;
+    height: 27px;
+    outline: none;
+  }
+  .row:focus-visible .bar { filter: brightness(0.92); }
+  .row-label {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    text-align: right;
+    padding-right: 10px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .row-label .handler {
+    display: block;
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+  .bar-track {
+    position: relative;
+    height: 100%;
+  }
+  .bar-track::before {
+    /* baseline */
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -2px;
+    bottom: -2px;
+    width: 1px;
+    background: var(--baseline);
+    z-index: 1;
+  }
+  .grid-line {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 1px;
+    background: var(--gridline);
+    z-index: 0;
+  }
+  .bar {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 16px;
+    border-radius: 4px;
+    z-index: 2;
+    cursor: pointer;
+  }
+  .bar.loss { background: var(--series-loss); right: 50%; border-radius: 4px 0 0 4px; }
+  .bar.gain { background: var(--series-gain); left: 50%; border-radius: 0 4px 4px 0; }
+  .bar-value {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    z-index: 3;
+  }
+  .bar-value.inside {
+    color: #ffffff;
+  }
+
+  .row-sep {
+    height: 1px;
+    background: var(--gridline);
+    margin-left: 168px;
+    opacity: .6;
+  }
+
+  .foot-note {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 16px;
+    line-height: 1.5;
+  }
+
+  .table-toggle {
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 14px;
+  }
+  .table-toggle:hover { color: var(--text-primary); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: 12.5px;
+    display: none;
+  }
+  table.show { display: table; }
+  th, td {
+    text-align: right;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--gridline);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+  }
+  th:first-child, td:first-child { text-align: left; font-variant-numeric: normal; }
+  th { color: var(--text-secondary); font-weight: 600; font-size: 11.5px; }
+  td.pos { color: var(--text-secondary); }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: var(--text-primary);
+    color: var(--surface-1);
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 6px;
+    padding: 8px 10px;
+    max-width: 220px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity .08s;
+  }
+  #tooltip .tt-name { font-weight: 600; margin-bottom: 2px; }
+  #tooltip .tt-row { display: flex; justify-content: space-between; gap: 10px; }
+  #tooltip .tt-val { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="viz-root">
+  <div class="header-row">
+    <div>
+      <h1>Callout offers per responder, before vs. after 4.2</h1>
+      <p class="subtitle">% change in average weekly offers — 6-week average before the release (29 Jun–3 Aug) vs. 3-week average after (17–31 Aug). Ship week (10–16 Aug) excluded from both averages.</p>
+    </div>
+    <button class="theme-toggle" id="themeToggle" type="button">Dark mode</button>
+  </div>
+
+  <div class="callout">
+    <strong>25% of responders (4 of 16)</strong> lost 80%+ of their weekly offers after 4.2, while total offer volume across the roster stayed roughly flat.
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="legend-swatch" style="background:var(--series-loss)"></span>Fewer offers after 4.2</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:var(--series-gain)"></span>More offers after 4.2</div>
+  </div>
+
+  <div class="chart-scale" id="chartScale"></div>
+  <div class="rows" id="rows"></div>
+
+  <button class="table-toggle" id="tableToggle" type="button">View as table</button>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>Responder</th>
+        <th>Handler</th>
+        <th>Pre-4.2 avg/wk</th>
+        <th>Post-4.2 avg/wk</th>
+        <th>% change</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <p class="foot-note">Source: 00-rook/data/callout-history.csv. Pre-4.2 = weeks starting 2026-06-29 through 2026-08-03. Post-4.2 = weeks starting 2026-08-17 through 2026-08-31.</p>
+</div>
+
+<div id="tooltip" role="tooltip"></div>
+
+<script>
+  const data = [
+    { name: "Farlight",         handler: "Linda Pruitt",   pre: 12.0, post: 1.3,  pct: -89 },
+    { name: "The Undertow",     handler: "Desmond Okafor", pre: 12.0, post: 2.0,  pct: -83 },
+    { name: "Vesper",           handler: "Aunt Dot",       pre: 13.8, post: 2.7,  pct: -81 },
+    { name: "Meteor Mite",      handler: "Kip",            pre: 11.2, post: 2.3,  pct: -79 },
+    { name: "Corporal Ashgrove",handler: "Yusuf Demir",    pre: 10.0, post: 7.3,  pct: -27 },
+    { name: "Halfmoon",         handler: "Simone Fischer", pre: 11.0, post: 8.3,  pct: -24 },
+    { name: "Sgt. Bulwark",     handler: "Halloran",       pre: 9.0,  post: 10.7, pct: 19  },
+    { name: "The Longcast",     handler: "Graham Petrov",  pre: 7.2,  post: 8.7,  pct: 21  },
+    { name: "The Drift",        handler: "Beatrice Calloway", pre: 6.2, post: 7.7, pct: 24 },
+    { name: "Cindermark",       handler: "Farid Haddad",   pre: 9.0,  post: 11.7, pct: 30  },
+    { name: "Nightwell",        handler: "Marjorie Sung",  pre: 15.0, post: 19.7, pct: 31  },
+    { name: "Stormwrack",       handler: "Renata Kovač",   pre: 13.0, post: 17.7, pct: 36  },
+    { name: "Ironvale",         handler: "Teresa Alvarez", pre: 8.0,  post: 11.0, pct: 38  },
+    { name: "Captain Vantage",  handler: "Ambrose",        pre: 12.0, post: 16.7, pct: 39  },
+    { name: "Sgt. Falkirk",     handler: "Owen Bramwell",  pre: 10.0, post: 14.7, pct: 47  },
+    { name: "The Gale",         handler: "Kip",            pre: 13.0, post: 19.3, pct: 49  },
+  ];
+
+  const SCALE_MAX = 90; // symmetric domain, covers the -89 extreme
+  const ticks = [-80, -40, 0, 40, 80];
+
+  const scaleEl = document.getElementById("chartScale");
+  ticks.forEach(t => {
+    const pos = ((t + SCALE_MAX) / (SCALE_MAX * 2)) * 100;
+    const span = document.createElement("span");
+    span.className = "scale-tick";
+    span.style.left = pos + "%";
+    span.textContent = (t > 0 ? "+" : "") + t + "%";
+    scaleEl.appendChild(span);
+  });
+
+  const rowsEl = document.getElementById("rows");
+  const tooltip = document.getElementById("tooltip");
+  const tableBody = document.getElementById("tableBody");
+
+  data.forEach((d, i) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    row.tabIndex = 0;
+
+    const label = document.createElement("div");
+    label.className = "row-label";
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = d.name;
+    const handlerSpan = document.createElement("span");
+    handlerSpan.className = "handler";
+    handlerSpan.textContent = d.handler;
+    label.appendChild(nameSpan);
+    label.appendChild(handlerSpan);
+    row.appendChild(label);
+
+    const track = document.createElement("div");
+    track.className = "bar-track";
+
+    ticks.forEach(t => {
+      if (t === 0) return;
+      const pos = ((t + SCALE_MAX) / (SCALE_MAX * 2)) * 100;
+      const gl = document.createElement("div");
+      gl.className = "grid-line";
+      gl.style.left = pos + "%";
+      track.appendChild(gl);
+    });
+
+    const halfPct = (Math.abs(d.pct) / SCALE_MAX) * 50;
+    const bar = document.createElement("div");
+    bar.className = "bar " + (d.pct < 0 ? "loss" : "gain");
+    bar.style.width = halfPct + "%";
+    track.appendChild(bar);
+
+    const value = document.createElement("div");
+    value.className = "bar-value";
+    value.textContent = (d.pct > 0 ? "+" : "") + d.pct + "%";
+    // Long bars (>=60% of the way to the domain edge) have no room for an
+    // outside label before hitting the row-label column, so label inside instead.
+    const tightSpace = halfPct > 35;
+    if (d.pct < 0) {
+      if (tightSpace) {
+        value.classList.add("inside");
+        value.style.left = "calc(" + (50 - halfPct) + "% + 8px)";
+      } else {
+        value.style.right = "calc(50% + " + halfPct + "% + 8px)";
+      }
+    } else {
+      value.style.left = "calc(50% + " + halfPct + "% + 8px)";
+    }
+    track.appendChild(value);
+
+    row.appendChild(track);
+    rowsEl.appendChild(row);
+
+    if (i < data.length - 1) {
+      const sep = document.createElement("div");
+      sep.className = "row-sep";
+      rowsEl.appendChild(sep);
+    }
+
+    const showTip = (evt) => {
+      tooltip.innerHTML = "";
+      const nameEl = document.createElement("div");
+      nameEl.className = "tt-name";
+      nameEl.textContent = d.name;
+      tooltip.appendChild(nameEl);
+      const rows = [
+        ["Handler", d.handler],
+        ["Pre-4.2 avg/wk", d.pre.toFixed(1)],
+        ["Post-4.2 avg/wk", d.post.toFixed(1)],
+        ["Change", (d.pct > 0 ? "+" : "") + d.pct + "%"],
+      ];
+      rows.forEach(([k, v]) => {
+        const r = document.createElement("div");
+        r.className = "tt-row";
+        const kEl = document.createElement("span");
+        kEl.textContent = k;
+        const vEl = document.createElement("span");
+        vEl.className = "tt-val";
+        vEl.textContent = v;
+        r.appendChild(kEl);
+        r.appendChild(vEl);
+        tooltip.appendChild(r);
+      });
+      tooltip.style.opacity = "1";
+      positionTip(evt);
+    };
+    const positionTip = (evt) => {
+      const x = evt.clientX ?? row.getBoundingClientRect().right;
+      const y = evt.clientY ?? row.getBoundingClientRect().top;
+      tooltip.style.left = Math.min(x + 14, window.innerWidth - 240) + "px";
+      tooltip.style.top = (y - 10) + "px";
+    };
+    const hideTip = () => { tooltip.style.opacity = "0"; };
+
+    row.addEventListener("pointermove", showTip);
+    row.addEventListener("pointerleave", hideTip);
+    row.addEventListener("focus", (e) => showTip({ clientX: row.getBoundingClientRect().right, clientY: row.getBoundingClientRect().top }));
+    row.addEventListener("blur", hideTip);
+
+    const tr = document.createElement("tr");
+    const cells = [
+      d.name,
+      d.handler,
+      d.pre.toFixed(1),
+      d.post.toFixed(1),
+      (d.pct > 0 ? "+" : "") + d.pct + "%",
+    ];
+    cells.forEach((c, idx) => {
+      const td = document.createElement("td");
+      td.textContent = c;
+      if (idx === 4) td.className = d.pct < 0 ? "" : "pos";
+      tr.appendChild(td);
+    });
+    tableBody.appendChild(tr);
+  });
+
+  document.getElementById("tableToggle").addEventListener("click", () => {
+    const t = document.getElementById("dataTable");
+    t.classList.toggle("show");
+    document.getElementById("tableToggle").textContent =
+      t.classList.contains("show") ? "Hide table" : "View as table";
+  });
+
+  document.getElementById("themeToggle").addEventListener("click", () => {
+    const root = document.documentElement;
+    const isDark = root.getAttribute("data-theme") === "dark";
+    root.setAttribute("data-theme", isDark ? "light" : "dark");
+    document.getElementById("themeToggle").textContent = isDark ? "Dark mode" : "Light mode";
+  });
+</script>
+</body>
+</html>
