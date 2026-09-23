@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>A way back — recovery path brief</title>
+<style>
+  @page { size: Letter; margin: 0.5in 0.65in; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: #0b0b0b;
+    background: #fcfcfb;
+    font-size: 9.5pt;
+    line-height: 1.24;
+  }
+  .page { max-width: 7.2in; margin: 0 auto; }
+
+  .eyebrow {
+    font-size: 8.2pt;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #898781;
+    font-weight: 600;
+    margin: 0 0 3px 0;
+  }
+  h1 {
+    font-size: 14.5pt;
+    margin: 0 0 4px 0;
+    line-height: 1.15;
+    color: #0b0b0b;
+  }
+  .meta {
+    font-size: 8.6pt;
+    color: #52514e;
+    margin: 0 0 5px 0;
+    border-bottom: 1px solid #e1e0d9;
+    padding-bottom: 4px;
+  }
+
+  .intro {
+    font-size: 9.2pt;
+    color: #52514e;
+    margin: 5px 0 2px 0;
+    font-style: italic;
+  }
+
+  h2 {
+    font-size: 10.4pt;
+    color: #0b0b0b;
+    margin: 8px 0 4px 0;
+    padding-top: 6px;
+    border-top: 2px solid #0b0b0b;
+  }
+  h2:first-of-type { margin-top: 6px; }
+  h2 .num { color: #898781; font-weight: 400; margin-right: 4px; }
+
+  p { margin: 0 0 4px 0; }
+
+  blockquote {
+    margin: 4px 0 7px 0;
+    padding: 7px 11px;
+    background: #f3f2ee;
+    border-left: 3px solid #c3c2b7;
+    font-style: italic;
+    color: #52514e;
+    font-size: 9.2pt;
+  }
+  blockquote cite {
+    display: block;
+    margin-top: 3px;
+    font-style: normal;
+    font-size: 8.2pt;
+    color: #898781;
+  }
+
+  code {
+    font-family: "Consolas", monospace;
+    font-size: 91%;
+    background: #f3f2ee;
+    padding: 0 3px;
+    border-radius: 2px;
+  }
+
+  ul.tight { margin: 2px 0 3px 0; padding-left: 16px; }
+  ul.tight li { margin-bottom: 2px; font-size: 9pt; }
+  ul.tight li b { color: #0b0b0b; }
+  ul.tight.doesnt li { color: #3a3a38; }
+
+  .diagram { margin: 3px 0 1px 0; width: 44%; }
+  .diagram svg { display: block; width: 100%; height: auto; }
+
+  .closing {
+    margin-top: 6px;
+    padding-top: 5px;
+    border-top: 1px solid #e1e0d9;
+    font-size: 9pt;
+    color: #0b0b0b;
+  }
+  .closing .who { color: #52514e; font-size: 8.2pt; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="eyebrow">Product brief · Rook Dispatch</div>
+  <h1>A way back — letting the routing score recover on its own</h1>
+  <div class="meta">
+    <div><b>To:</b> Helen Achebe, Director of Product, Dispatch &amp; Supply</div>
+    <div><b>From:</b> Product Manager, Rook Dispatch &nbsp;·&nbsp; <b>Date:</b> 23 September 2026</div>
+  </div>
+  <p class="intro">
+    From the point of view of the person it happens to, not a setting — per your note.
+  </p>
+
+  <h2><span class="num">1.</span>The story</h2>
+  <p>
+    In 2019, Wen left a comment next to <code>record_declined()</code> in <code>history.py</code>
+    asking whether a responder's recent-acceptance score should ease back toward neutral on its own.
+    It was left unresolved: <i>"leaving it as-is for now."</i> A decline or timeout drops the score
+    <code>0.12</code>; an accept only recovers <code>0.08</code>; nothing brings it back by itself.
+    That sat fine for six years — until 4.2 weighted proximity up and recent acceptance down, and a
+    responder parked at the floor stopped being offered enough work to ever climb back off it.
+  </p>
+  <p>
+    Meteor Mite — Kip's other responder — went from 11 offers a week to 1 after 4.2, while The Gale,
+    same handler, same city, same weeks, went from 13 to 21. She and three others (The Undertow,
+    Vesper, Farlight) lost 80%+ of their weekly offers and never recovered; unaided, the odds of
+    climbing back are roughly <b>1 in 2.8 million</b>. With a recovery path, her score eases back
+    toward neutral on its own after a stretch with no offers — she isn't winning her way out of a
+    hole that only deepens. Kip gets no dashboard, no dial. What he'd notice is simpler: her phone
+    starts ringing again.
+  </p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 780 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chart comparing a score stuck at the floor against a score that eases back toward neutral over six weeks">
+      <line x1="60" y1="15" x2="60" y2="122" stroke="#c3c2b7" stroke-width="1"/>
+      <line x1="60" y1="122" x2="590" y2="122" stroke="#c3c2b7" stroke-width="1"/>
+      <line x1="60" y1="68" x2="590" y2="68" stroke="#e1e0d9" stroke-width="1" stroke-dasharray="2,3"/>
+      <text x="52" y="72" text-anchor="end" font-size="8.5" fill="#898781" font-family="system-ui,sans-serif">neutral</text>
+      <text x="52" y="126" text-anchor="end" font-size="8.5" fill="#898781" font-family="system-ui,sans-serif">floor</text>
+      <line x1="60" y1="118" x2="590" y2="118" stroke="#898781" stroke-width="2"/>
+      <text x="598" y="121" font-size="9" fill="#52514e" font-family="system-ui,sans-serif">Now: parked at the floor</text>
+      <path d="M 60 118 C 200 118, 235 108, 305 92 S 430 62, 590 40" fill="none" stroke="#2a78d6" stroke-width="2.4"/>
+      <text x="598" y="43" font-size="9" fill="#1c5cab" font-family="system-ui,sans-serif" font-weight="600">With this: eases toward neutral</text>
+      <text x="60" y="140" font-size="8.2" fill="#898781" font-family="system-ui,sans-serif">week 0</text>
+      <text x="590" y="140" font-size="8.2" fill="#898781" font-family="system-ui,sans-serif" text-anchor="end">week 6</text>
+    </svg>
+  </div>
+
+  <p style="margin-top:4px;"><b>What this deliberately doesn't do:</b></p>
+  <ul class="tight doesnt">
+    <li><b>Doesn't touch the 4.2 reweighting</b> — <code>WEIGHT_PROXIMITY</code> / <code>WEIGHT_RECENT_ACCEPTANCE</code> stay as 4.2 set them; Priya's warning against relitigating 4.2 still holds.</li>
+    <li><b>Doesn't touch the 60-second timeout</b> — a separate, already-understood problem.</li>
+    <li><b>Doesn't single out habitual decliners</b> — same formula, same treatment, for everyone.</li>
+    <li><b>Isn't a setting</b> — no toggle, dial, or handler-facing control.</li>
+    <li><b>Isn't the fix for the "is my account broken?" tickets</b> — that needs responder-visible history, not this.</li>
+  </ul>
+
+  <h2><span class="num">2.</span>Open questions before coding</h2>
+  <ul class="tight">
+    <li><b>Neither side would know it's working</b> — nothing yet surfaces the change to Meteor Mite or Kip; a good week and a lucky week would look identical.</li>
+    <li><b>"Unoffered" isn't defined precisely enough to size</b> — suppression vs. a genuine coverage gap.</li>
+    <li><b>No backfill decision</b> — does Meteor Mite's existing time at the floor count, or does the clock start at zero on ship day.</li>
+    <li><b>No success bar</b> — what "worked" looks like from Kip's side, and by when.</li>
+    <li><b>No monitoring or rollback plan</b> — 4.2 also shipped clean, no pages, and still caused undetected harm.</li>
+  </ul>
+
+  <h2><span class="num">3.</span>Where the code needs to change</h2>
+  <ul class="tight">
+    <li><b><code>history.py</code></b> — core of the change. Needs a per-responder last-updated timestamp (doesn't exist today) and new decay logic, most likely computed lazily inside <code>recent_acceptance()</code>.</li>
+    <li><b><code>config.py</code></b> — two new tunables alongside <code>ACCEPTANCE_CREDIT</code> / <code>DECLINE_PENALTY</code>: how long unoffered before decay starts, how big each step is.</li>
+    <li><b><code>offer.py</code> / <code>routing.py</code></b> — no changes expected; <code>offer.py</code> only fires history events for responders actually offered, confirming the clock must run on elapsed time, not an event; <code>routing.py</code> already reads <code>history.recent_acceptance()</code>, so it picks up decayed values automatically.</li>
+    <li><b><code>availability.py</code></b> — no changes expected, but any shape change to a responder record must go through Supply first, per that file's own note.</li>
+    <li><b>Migration</b> — a one-time decision, not a file: backfill a last-updated time for already-suppressed responders, or start every clock at zero on ship day.</li>
+  </ul>
+
+  <div class="closing">
+    <p>Recommend a short working session with Wen, Sofia, and Nadia to close section 2 before anyone touches section 3.</p>
+    <div class="who">Can bring a clickable walkthrough next, if that's useful alongside this.</div>
+  </div>
+
+</div>
+</body>
+</html>

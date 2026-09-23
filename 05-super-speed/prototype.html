@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rook Dispatch — Responders</title>
+<style>
+  :root {
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f4f3f0;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --border:         rgba(11,11,11,0.10);
+    --blue:           #2a78d6;
+    --blue-wash:      #eaf1fb;
+    --good:           #0ca30c;
+    --good-wash:      #eaf7ea;
+    --serious:        #d2603a;
+    --serious-wash:   #fbeee7;
+    --warn:           #8a5a10;
+    --warn-wash:      #fbf1de;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+  }
+
+  /* mode switch — pure CSS, no JS */
+  .mode-input { position: absolute; opacity: 0; pointer-events: none; }
+
+  .topbar {
+    display: flex; align-items: center; gap: 18px;
+    background: #14171c; color: #fff;
+    padding: 10px 20px;
+  }
+  .wordmark { font-weight: 700; letter-spacing: 0.02em; font-size: 14px; }
+  .wordmark span { color: #7fb2ef; }
+  .nav { display: flex; gap: 4px; margin-left: 10px; flex: 1; }
+  .nav a {
+    color: #b9bcc2; text-decoration: none; font-size: 13px;
+    padding: 7px 12px; border-radius: 5px;
+  }
+  .nav a.active { background: #262b33; color: #fff; font-weight: 600; }
+  .who { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #d8dade; }
+  .avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--blue); color: #fff; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .crumb {
+    padding: 10px 24px 0 24px;
+    font-size: 12px; color: var(--text-muted);
+  }
+
+  .header {
+    padding: 6px 24px 14px 24px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .header h1 { font-size: 19px; margin: 4px 0 2px 0; }
+  .header p { font-size: 12.5px; color: var(--text-secondary); margin: 0; }
+
+  .toolbar { padding: 0 24px 14px 24px; }
+  .segmented {
+    display: inline-flex; border: 1px solid var(--gridline); border-radius: 8px;
+    background: var(--surface-1); overflow: hidden;
+  }
+  .seg {
+    padding: 7px 14px; font-size: 12.5px; color: var(--text-secondary);
+    cursor: pointer; user-select: none; border-right: 1px solid var(--gridline);
+  }
+  .seg:last-child { border-right: none; }
+  #mode-now:checked ~ .toolbar .seg[for="mode-now"],
+  #mode-fix:checked ~ .toolbar .seg[for="mode-fix"] {
+    background: var(--text-primary); color: #fff; font-weight: 600;
+  }
+  .toolbar-note { display: block; margin-top: 6px; font-size: 11.5px; color: var(--text-muted); }
+
+  .content { padding: 0 24px 40px 24px; display: flex; gap: 16px; flex-wrap: wrap; }
+
+  .card {
+    background: var(--surface-1); border: 1px solid var(--gridline); border-radius: 10px;
+    padding: 16px 18px; width: 360px; flex: 1 1 360px;
+  }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .card h2 { font-size: 15px; margin: 0 0 4px 0; }
+  .tags { display: flex; gap: 5px; flex-wrap: wrap; margin: 2px 0 10px 0; }
+  .tag {
+    font-size: 10.5px; color: var(--text-secondary); background: var(--page-plane);
+    border: 1px solid var(--gridline); border-radius: 999px; padding: 2px 8px;
+  }
+  .avail { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); display: inline-block; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+    padding: 4px 10px; border-radius: 6px; margin-bottom: 10px;
+  }
+  .badge.good { background: var(--good-wash); color: #0a6e0a; }
+  .badge.serious { background: var(--serious-wash); color: #9c4020; }
+  .badge.info { background: var(--blue-wash); color: #1c5cab; }
+
+  .spark-label { font-size: 11px; color: var(--text-muted); margin: 8px 0 4px 0; }
+  .spark { display: flex; align-items: flex-end; gap: 3px; height: 46px; }
+  .bar { width: 12px; background: var(--blue); border-radius: 2px 2px 0 0; }
+  .bar.dim { background: #c7d9f0; }
+  .spark-weeks { display: flex; gap: 3px; margin-top: 3px; }
+  .spark-weeks span { width: 12px; font-size: 8.5px; color: var(--text-muted); text-align: center; }
+
+  details.why { margin-top: 10px; }
+  details.why summary {
+    font-size: 12px; color: var(--blue); cursor: pointer; list-style: none;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  details.why summary::-webkit-details-marker { display: none; }
+  details.why summary::before { content: "ⓘ"; }
+  details.why[open] summary::before { content: "ⓘ"; }
+  details.why p {
+    font-size: 12px; color: var(--text-secondary); background: var(--page-plane);
+    border-radius: 6px; padding: 9px 11px; margin: 6px 0 0 0;
+  }
+
+  .now-only, .fix-only { display: block; }
+  #mode-fix:checked ~ .content .now-only { display: none; }
+  #mode-now:checked ~ .content .fix-only { display: none; }
+
+  .sim-widget {
+    background: var(--surface-1); border: 1px solid var(--gridline); border-radius: 10px;
+    padding: 14px 18px; width: 100%; flex: 1 1 100%; margin-bottom: 2px;
+  }
+  .sim-head { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+  .sim-widget input[type=range] { width: 100%; accent-color: var(--blue); margin-bottom: 6px; }
+  .sim-value { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+  .sim-value b { color: var(--text-primary); }
+  .sim-caption { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+  .sim-divider { border: none; border-top: 1px solid var(--gridline); margin: 12px 0 10px 0; }
+  .sim-time-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .sim-time-label b { color: var(--text-primary); }
+
+  .sim-traj { margin-top: 10px; }
+  .sim-traj-row { margin-bottom: 12px; }
+  .sim-traj-row:last-child { margin-bottom: 0; }
+  .sim-traj-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+  .sim-traj-head .sim-name { font-size: 12px; color: var(--text-secondary); }
+  .sim-traj-head .sim-num { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+  .sim-traj-head .sim-num span { font-size: 10.5px; font-weight: 400; color: var(--text-muted); }
+
+  .risk[hidden] { display: none; }
+  .risk { margin-top: 10px; }
+  details.risk-details summary {
+    font-size: 12.5px; font-weight: 600; cursor: pointer; list-style: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border-radius: 6px;
+  }
+  details.risk-details summary::-webkit-details-marker { display: none; }
+  details.risk-details p {
+    font-size: 12px; color: var(--text-secondary); background: var(--page-plane);
+    border-radius: 6px; padding: 9px 11px; margin: 6px 0 0 0;
+  }
+  details.risk-details.level-1 summary { background: var(--warn-wash); color: var(--warn); }
+  details.risk-details.level-2 summary { background: var(--serious-wash); color: #9c4020; }
+
+  .prototype-flag {
+    position: fixed; bottom: 14px; right: 14px;
+    background: #14171c; color: #fff; font-size: 11px;
+    padding: 6px 10px; border-radius: 6px; opacity: 0.85;
+  }
+</style>
+</head>
+<body>
+
+  <input type="radio" name="mode" id="mode-now" class="mode-input" checked>
+  <input type="radio" name="mode" id="mode-fix" class="mode-input">
+
+  <div class="topbar">
+    <div class="wordmark">ROOK <span>DISPATCH</span></div>
+    <div class="nav">
+      <a href="#">Incidents</a>
+      <a href="#">Coverage</a>
+      <a href="#" class="active">Responders</a>
+      <a href="#">Overrides</a>
+    </div>
+    <div class="who"><div class="avatar">K</div> Kip</div>
+  </div>
+
+  <div class="crumb">Handler console → Responders → Your roster</div>
+
+  <div class="header">
+    <div>
+      <h1>Your responders</h1>
+      <p>Availability, capability tags, and recent callout activity for the responders you manage.</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="segmented">
+      <label class="seg" for="mode-now">Now</label>
+      <label class="seg" for="mode-fix">With recovery path (proposed)</label>
+    </div>
+    <span class="toolbar-note">Click to compare what you'd see on this screen today vs. after the fix described in the brief.</span>
+  </div>
+
+  <div class="content">
+
+    <div class="now-only sim-widget">
+      <div class="sim-head">Simulate: incidents this week in their coverage area</div>
+      <input type="range" min="4" max="32" step="2" value="16" id="vol-now" oninput="updateNow()">
+      <div class="sim-value"><b id="vol-now-out">16</b> incidents this week</div>
+
+      <hr class="sim-divider">
+      <div class="sim-time-label">Simulate forward — <b id="weeks-now-out">2</b> week(s) at this volume</div>
+      <input type="range" min="1" max="10" step="1" value="2" id="weeks-now" oninput="updateNow()">
+
+      <div class="sim-traj">
+        <div class="sim-traj-row">
+          <div class="sim-traj-head">
+            <span class="sim-name">Meteor Mite</span>
+            <span class="sim-num" id="meteor-now-num">0 <span>this week</span></span>
+          </div>
+          <div class="spark" id="meteor-now-spark"></div>
+        </div>
+        <div class="sim-traj-row">
+          <div class="sim-traj-head">
+            <span class="sim-name">The Gale</span>
+            <span class="sim-num" id="gale-now-num">14 <span>this week</span></span>
+          </div>
+          <div class="spark" id="gale-now-spark"></div>
+        </div>
+      </div>
+      <div class="sim-caption">Illustrative model, not production numbers — each bar is one simulated week at the volume above. Shows that more incidents, or more time, doesn't reach her; she's ranked too low to get offered either way.</div>
+
+      <div class="risk" id="risk-now" hidden>
+        <details class="risk-details">
+          <summary><span id="risk-now-icon">⚠</span> <span id="risk-now-headline">At risk — no offers in 2 weeks</span></summary>
+          <p id="risk-now-body"></p>
+        </details>
+      </div>
+    </div>
+
+    <div class="fix-only sim-widget">
+      <div class="sim-head">Simulate: incidents this week in their coverage area</div>
+      <input type="range" min="4" max="32" step="2" value="16" id="vol-fix" oninput="updateFix()">
+      <div class="sim-value"><b id="vol-fix-out">16</b> incidents this week</div>
+
+      <hr class="sim-divider">
+      <div class="sim-time-label">Simulate forward — <b id="weeks-fix-out">2</b> week(s) at this volume</div>
+      <input type="range" min="1" max="10" step="1" value="2" id="weeks-fix" oninput="updateFix()">
+
+      <div class="sim-traj">
+        <div class="sim-traj-row">
+          <div class="sim-traj-head">
+            <span class="sim-name">Meteor Mite</span>
+            <span class="sim-num" id="meteor-fix-num">4 <span>this week</span></span>
+          </div>
+          <div class="spark" id="meteor-fix-spark"></div>
+        </div>
+        <div class="sim-traj-row">
+          <div class="sim-traj-head">
+            <span class="sim-name">The Gale</span>
+            <span class="sim-num" id="gale-fix-num">12 <span>this week</span></span>
+          </div>
+          <div class="spark" id="gale-fix-spark"></div>
+        </div>
+      </div>
+      <div class="sim-caption">Illustrative model, not production numbers — each bar is one simulated week at the volume above. Her standing eases back over about 6 weeks, so early weeks can still be quiet even with the fix in place.</div>
+
+      <div class="risk" id="risk-fix" hidden>
+        <details class="risk-details">
+          <summary><span id="risk-fix-icon">⚠</span> <span id="risk-fix-headline">At risk — no offers in 2 weeks</span></summary>
+          <p id="risk-fix-body"></p>
+        </details>
+      </div>
+    </div>
+
+    <!-- Meteor Mite -->
+    <div class="card">
+      <div class="card-top">
+        <div>
+          <h2>Meteor Mite</h2>
+          <div class="tags"><span class="tag">aquatic</span><span class="tag">cold-weather</span></div>
+        </div>
+      </div>
+      <div class="avail"><span class="dot"></span> Available</div>
+
+      <div class="now-only">
+        <span class="badge serious">■ Quiet — no offers in 12 days</span>
+        <div class="spark-label">Callouts offered, last 8 weeks</div>
+        <div class="spark">
+          <div class="bar" style="height:46px"></div>
+          <div class="bar" style="height:42px"></div>
+          <div class="bar" style="height:38px"></div>
+          <div class="bar dim" style="height:9px"></div>
+          <div class="bar dim" style="height:4px"></div>
+          <div class="bar dim" style="height:4px"></div>
+          <div class="bar dim" style="height:2px"></div>
+          <div class="bar dim" style="height:4px"></div>
+        </div>
+        <details class="why">
+          <summary>Why so quiet?</summary>
+          <p>Meteor Mite's recent-acceptance standing dropped after a stretch of declines and timeouts, and it only climbs back up when she's offered a callout and takes it. She isn't being offered enough to do that — so right now, there's no way for it to recover on its own.</p>
+        </details>
+      </div>
+
+      <div class="fix-only">
+        <span class="badge info">↻ Recovering — standing easing back to neutral</span>
+        <div class="spark-label">Callouts offered, last 8 weeks</div>
+        <div class="spark">
+          <div class="bar" style="height:46px"></div>
+          <div class="bar" style="height:42px"></div>
+          <div class="bar" style="height:38px"></div>
+          <div class="bar dim" style="height:9px"></div>
+          <div class="bar dim" style="height:4px"></div>
+          <div class="bar" style="height:9px"></div>
+          <div class="bar" style="height:15px"></div>
+          <div class="bar" style="height:23px"></div>
+        </div>
+        <details class="why">
+          <summary>Why is she getting offers again?</summary>
+          <p>Nobody changed anything for her. After a stretch with no offers, her standing eases back toward neutral on its own — a small step at a time — instead of staying parked at the floor. There's nothing for you to turn on; it's just how the routing works now.</p>
+        </details>
+      </div>
+    </div>
+
+    <!-- The Gale -->
+    <div class="card">
+      <div class="card-top">
+        <div>
+          <h2>The Gale</h2>
+          <div class="tags"><span class="tag">flight</span><span class="tag">crowd-management</span></div>
+        </div>
+      </div>
+      <div class="avail"><span class="dot"></span> Available</div>
+
+      <span class="badge good">● Active</span>
+      <div class="spark-label">Callouts offered, last 8 weeks</div>
+      <div class="spark">
+        <div class="bar" style="height:26px"></div>
+        <div class="bar" style="height:28px"></div>
+        <div class="bar" style="height:26px"></div>
+        <div class="bar" style="height:30px"></div>
+        <div class="bar" style="height:36px"></div>
+        <div class="bar" style="height:40px"></div>
+        <div class="bar" style="height:38px"></div>
+        <div class="bar" style="height:42px"></div>
+      </div>
+      <details class="why">
+        <summary>About this roster</summary>
+        <p>The Gale isn't affected by the recovery path either way — she's already getting offered work at a steady, healthy rate. This fix only changes things for responders who've gotten stuck at the bottom, like Meteor Mite.</p>
+      </details>
+    </div>
+
+  </div>
+
+  <div class="prototype-flag">PROTOTYPE — recovery path not yet built. See brief.md</div>
+
+  <script>
+    var BAR_SCALE = 26;      // reference ceiling for bar heights — The Gale's practical max
+    var RECOVERY_WEEKS = 6;  // weeks for a floored score to ease back to neutral, per the brief's diagram
+
+    // One simulated week's offer count for Meteor Mite.
+    // "now": stuck at zero forever, regardless of volume or how much time passes —
+    //        there is no recovery mechanism today, so nothing here should ever move.
+    // "fix": she has a volume-driven ceiling once fully recovered, but climbs toward
+    //        it over RECOVERY_WEEKS rather than getting it from week one.
+    function meteorWeek(mode, v, week) {
+      if (mode === 'now') return 0;
+      var steady = Math.max(1, Math.round(v * 0.28));
+      var progress = Math.min(1, week / RECOVERY_WEEKS);
+      return Math.round(steady * progress);
+    }
+
+    // The Gale isn't affected by the fix either way — flat week to week.
+    function galeWeek(mode, v) {
+      return mode === 'now'
+        ? Math.min(Math.round(v * 0.9), 26)
+        : Math.min(Math.round(v * 0.72), 24);
+    }
+
+    function renderSpark(containerId, series) {
+      var el = document.getElementById(containerId);
+      el.innerHTML = '';
+      series.forEach(function (val) {
+        var bar = document.createElement('div');
+        bar.className = 'bar' + (val === 0 ? ' dim' : '');
+        bar.style.height = Math.max(3, Math.round(val / BAR_SCALE * 46)) + 'px';
+        el.appendChild(bar);
+      });
+    }
+
+    function trailingZeroStreak(series) {
+      var streak = 0;
+      for (var i = series.length - 1; i >= 0; i--) {
+        if (series[i] === 0) streak++; else break;
+      }
+      return streak;
+    }
+
+    // Renders the "at risk of falling into the non-responder hole" indicator.
+    // quietWeeks is the actual trailing run of zero-offer weeks in the simulated
+    // series, so the popup's numbers can never drift out of sync with the chart.
+    function renderRisk(scope, quietWeeks, name) {
+      var wrap = document.getElementById('risk-' + scope);
+      var details = wrap.querySelector('details');
+      var icon = document.getElementById('risk-' + scope + '-icon');
+      var headline = document.getElementById('risk-' + scope + '-headline');
+      var body = document.getElementById('risk-' + scope + '-body');
+
+      if (quietWeeks <= 0) {
+        wrap.hidden = true;
+        return;
+      }
+      wrap.hidden = false;
+      var days = quietWeeks * 7;
+      var weekWord = quietWeeks === 1 ? 'week' : 'weeks';
+
+      if (quietWeeks < 3) {
+        details.className = 'risk-details level-1';
+        icon.textContent = '⚠';
+        headline.textContent = 'At risk — no offers in ' + quietWeeks + ' ' + weekWord;
+        body.textContent = name + " hasn't been offered a callout in " + days + ' days at this volume. ' +
+          "She hasn't fallen into the non-responder hole yet — but if this continues, her standing could get parked at the floor with no way back.";
+      } else {
+        details.className = 'risk-details level-2';
+        icon.textContent = '■';
+        headline.textContent = 'Stuck — no offers in ' + quietWeeks + ' ' + weekWord;
+        body.textContent = name + ' has gone ' + days + ' days without a single offer at this volume. ' +
+          "This is the non-responder hole from the brief — without a recovery path, there's no way for her standing to climb back on its own.";
+      }
+    }
+
+    function updateNow() {
+      var v = Number(document.getElementById('vol-now').value);
+      var w = Number(document.getElementById('weeks-now').value);
+      document.getElementById('vol-now-out').textContent = v;
+      document.getElementById('weeks-now-out').textContent = w;
+
+      var mSeries = [], gSeries = [];
+      for (var wk = 1; wk <= w; wk++) {
+        mSeries.push(meteorWeek('now', v, wk));
+        gSeries.push(galeWeek('now', v));
+      }
+      renderSpark('meteor-now-spark', mSeries);
+      renderSpark('gale-now-spark', gSeries);
+      document.getElementById('meteor-now-num').innerHTML = mSeries[mSeries.length - 1] + ' <span>this week</span>';
+      document.getElementById('gale-now-num').innerHTML = gSeries[gSeries.length - 1] + ' <span>this week</span>';
+
+      renderRisk('now', trailingZeroStreak(mSeries), 'Meteor Mite');
+    }
+
+    function updateFix() {
+      var v = Number(document.getElementById('vol-fix').value);
+      var w = Number(document.getElementById('weeks-fix').value);
+      document.getElementById('vol-fix-out').textContent = v;
+      document.getElementById('weeks-fix-out').textContent = w;
+
+      var mSeries = [], gSeries = [];
+      for (var wk = 1; wk <= w; wk++) {
+        mSeries.push(meteorWeek('fix', v, wk));
+        gSeries.push(galeWeek('fix', v));
+      }
+      renderSpark('meteor-fix-spark', mSeries);
+      renderSpark('gale-fix-spark', gSeries);
+      document.getElementById('meteor-fix-num').innerHTML = mSeries[mSeries.length - 1] + ' <span>this week</span>';
+      document.getElementById('gale-fix-num').innerHTML = gSeries[gSeries.length - 1] + ' <span>this week</span>';
+
+      renderRisk('fix', trailingZeroStreak(mSeries), 'Meteor Mite');
+    }
+
+    updateNow();
+    updateFix();
+  </script>
+
+</body>
+</html>
