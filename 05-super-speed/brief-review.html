@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Review checklist — brief.md</title>
+<style>
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #0f1220;
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    color: #f5f3ff;
+  }
+  canvas#confetti {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .wrap {
+    position: relative;
+    z-index: 2;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
+  h1 {
+    font-size: 1.3rem;
+    text-align: center;
+    margin-bottom: 0.25rem;
+  }
+  .subtitle {
+    text-align: center;
+    color: #b8b3d9;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+  .score-badge {
+    text-align: center;
+    margin: 0 auto 2rem;
+  }
+  .score-badge .pct {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #ffd166;
+  }
+  .bar-track {
+    width: 100%;
+    height: 14px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 0.75rem;
+  }
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #06d6a0, #ffd166);
+    width: 100%;
+    border-radius: 999px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+  }
+  td {
+    padding: 0.7rem 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    vertical-align: top;
+  }
+  td.icon {
+    font-size: 1.2rem;
+    width: 2rem;
+    text-align: center;
+  }
+  td.label {
+    font-weight: bold;
+    white-space: nowrap;
+    width: 11rem;
+  }
+  td.reason {
+    color: #cfc9f0;
+    font-size: 0.92rem;
+  }
+  .verdict {
+    background: rgba(255,255,255,0.06);
+    border-left: 3px solid #ffd166;
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+  .poem-card {
+    background: rgba(20, 22, 40, 0.72);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .poem-card h2 { margin-top: 0; font-size: 1.1rem; }
+  .poem {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.1rem;
+    line-height: 1.9;
+    color: #e6e1ff;
+    white-space: pre-line;
+  }
+  button {
+    margin-top: 1.5rem;
+    padding: 0.6rem 1.4rem;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 999px;
+    background: #ffd166;
+    color: #1a1a2e;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  button:hover { background: #ffe08a; }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <h1>Review checklist — 05-super-speed/brief.md</h1>
+  <div class="subtitle">A way back — letting the routing score recover on its own</div>
+
+  <div class="score-badge">
+    <div class="pct">100%</div>
+    <div>Composite: 6 / 6</div>
+    <div class="bar-track"><div class="bar-fill"></div></div>
+  </div>
+
+  <table>
+    <tr><td class="icon">✅</td><td class="label">1. Owner</td><td class="reason">Names "Product Manager, Rook Dispatch"</td></tr>
+    <tr><td class="icon">✅</td><td class="label">2. Definition of success</td><td class="reason">Section 2 sets a specific, checkable bar (four named responders, week-4 flag, week 6–8 target) with a caveat on what doesn't count</td></tr>
+    <tr><td class="icon">✅</td><td class="label">3. Scope consistency</td><td class="reason">Opener's narrow scope matches the narrow fix in section 4; cross-references line up</td></tr>
+    <tr><td class="icon">✅</td><td class="label">4. Problem before fix</td><td class="reason">Mechanism and evidence precede the proposed code changes</td></tr>
+    <tr><td class="icon">✅</td><td class="label">5. Audience</td><td class="reason">Addressed to Helen Achebe by name</td></tr>
+    <tr><td class="icon">✅</td><td class="label">6. Assumptions and gaps</td><td class="reason">Open questions live in their own explicit section</td></tr>
+  </table>
+
+  <div class="verdict">
+    <strong>Verdict:</strong> Ready to send as-is. Every check passes, including the two gaps caught in earlier rounds (missing success bar, stale section reference) — both are now fixed.
+  </div>
+
+  <div class="poem-card">
+    <h2>🎉 All six checks cleared 🎉</h2>
+    <div class="poem">Six checks stood watch, and six checks fell,
+Owner named, and success shown well.
+The problem came first, the fix came second,
+Scope stayed tight — no drift was reckoned.
+Helen's named, the gaps laid bare —
+A hundred percent — now THAT'S a brief!</div>
+    <button onclick="burst()">🎊 Celebrate again</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('confetti');
+const ctx = canvas.getContext('2d');
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+const colors = ['#ffd166', '#ef476f', '#06d6a0', '#118ab2', '#c77dff', '#f78c6b'];
+let particles = [];
+
+function makeParticle() {
+  return {
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height * 0.5,
+    r: 4 + Math.random() * 5,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    speedY: 2 + Math.random() * 3,
+    speedX: (Math.random() - 0.5) * 2,
+    rotation: Math.random() * 360,
+    spin: (Math.random() - 0.5) * 10,
+    shape: Math.random() > 0.5 ? 'rect' : 'circle'
+  };
+}
+
+function burst() {
+  particles = particles.concat(Array.from({ length: 220 }, makeParticle));
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.speedX;
+    p.y += p.speedY;
+    p.rotation += p.spin;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate((p.rotation * Math.PI) / 180);
+    ctx.fillStyle = p.color;
+    if (p.shape === 'rect') {
+      ctx.fillRect(-p.r, -p.r * 0.4, p.r * 2, p.r * 0.8);
+    } else {
+      ctx.beginPath();
+      ctx.arc(0, 0, p.r * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  });
+  particles = particles.filter(p => p.y < canvas.height + 20);
+  requestAnimationFrame(animate);
+}
+
+burst();
+animate();
+</script>
+</body>
+</html>

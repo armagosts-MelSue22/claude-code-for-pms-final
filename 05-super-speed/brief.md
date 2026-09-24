@@ -23,15 +23,23 @@ Meteor Mite — Kip's other responder — went from 11 offers a week to 1 after 
 - **Isn't a setting** — no toggle, dial, or handler-facing control.
 - **Isn't the fix for the "is my account broken?" tickets** — that needs responder-visible history, not this.
 
-## 2. Open questions before coding
+## 2. What "worked" looks like (draft — to pressure-test with Wen, Sofia, Nadia)
+
+- **Primary signal:** Farlight, The Undertow, Vesper, and Meteor Mite each return to within their pre-4.2 weekly offer-volume band — not just off the floor, back to their own normal.
+- **Timeframe:** the recovery-path simulation eases a parked score back to neutral over ~6 weeks. Expect visible movement (offers ticking up) by week 3–4 post-ship; flag it if none of the four have moved by week 4.
+- **Secondary signal:** no new responder falls into the same 80%+-drop pattern after ship — confirms the fix generalizes rather than just having patched these four.
+- **Not sufficient alone:** roster-wide acceptance rate recovering. It's already trending up for reasons that look seasonal, so it can't by itself tell us the decay logic worked.
+
+This is a first pass at closing "no success bar" below — needs Wen's read on whether 6 weeks holds at current (lower) incident volume, and Sofia/Nadia's read on whether anyone beyond these four should be watched.
+
+## 3. Open questions before coding
 
 - **Neither side would know it's working** — nothing yet surfaces the change to Meteor Mite or Kip; a good week and a lucky week would look identical.
 - **"Unoffered" isn't defined precisely enough to size** — suppression vs. a genuine coverage gap.
 - **No backfill decision** — does Meteor Mite's existing time at the floor count, or does the clock start at zero on ship day.
-- **No success bar** — what "worked" looks like from Kip's side, and by when.
 - **No monitoring or rollback plan** — 4.2 also shipped clean, no pages, and still caused undetected harm.
 
-## 3. Where the code needs to change
+## 4. Where the code needs to change
 
 - **`history.py`** — core of the change. Needs a per-responder last-updated timestamp (doesn't exist today) and new decay logic, most likely computed lazily inside `recent_acceptance()`.
 - **`config.py`** — two new tunables alongside `ACCEPTANCE_CREDIT` / `DECLINE_PENALTY`: how long unoffered before decay starts, how big each step is.
@@ -41,6 +49,6 @@ Meteor Mite — Kip's other responder — went from 11 offers a week to 1 after 
 
 ---
 
-Recommend a short working session with Wen, Sofia, and Nadia to close section 2 before anyone touches section 3.
+Recommend a short working session with Wen, Sofia, and Nadia to close section 3 before anyone touches section 4.
 
 *Can bring a clickable walkthrough next, if that's useful alongside this.*

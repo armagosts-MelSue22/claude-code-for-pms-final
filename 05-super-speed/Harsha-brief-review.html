@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Review checklist — Harsha-brief.md</title>
+<style>
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #1c1e26;
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    color: #e8e6ee;
+  }
+  canvas#confetti {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .wrap {
+    position: relative;
+    z-index: 2;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
+  h1 { font-size: 1.3rem; text-align: center; margin-bottom: 0.25rem; }
+  .subtitle { text-align: center; color: #9a96a8; font-size: 0.9rem; margin-bottom: 2rem; }
+  .score-badge { text-align: center; margin: 0 auto 2rem; }
+  .score-badge .pct { font-size: 3rem; font-weight: bold; color: #b7b2c2; }
+  .score-badge .meh { font-size: 1.1rem; color: #9a96a8; }
+  .bar-track {
+    width: 100%; height: 14px; background: rgba(255,255,255,0.1);
+    border-radius: 999px; overflow: hidden; margin-top: 0.75rem;
+  }
+  .bar-fill {
+    height: 100%; background: linear-gradient(90deg, #6b7280, #9ca3af);
+    width: 75%; border-radius: 999px;
+  }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+  td { padding: 0.7rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.07); vertical-align: top; }
+  td.icon { font-size: 1.2rem; width: 2rem; text-align: center; }
+  td.label { font-weight: bold; white-space: nowrap; width: 12rem; }
+  td.reason { color: #bcb8c8; font-size: 0.92rem; }
+  .verdict {
+    background: rgba(255,255,255,0.05); border-left: 3px solid #9ca3af;
+    padding: 1rem 1.25rem; border-radius: 6px; font-size: 0.95rem;
+    line-height: 1.6; margin-bottom: 2rem;
+  }
+  .poem-card {
+    background: rgba(30, 32, 42, 0.7); border: 1px dashed rgba(255,255,255,0.18);
+    border-radius: 16px; padding: 2rem; text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  .poem-card h2 { margin-top: 0; font-size: 1.05rem; color: #cfc9d8; }
+  .poem {
+    font-family: Georgia, 'Times New Roman', serif; font-size: 1.05rem;
+    line-height: 1.85; color: #d6d2e0; white-space: pre-line;
+  }
+  canvas#overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+  button {
+    margin-top: 1.25rem; padding: 0.55rem 1.3rem; font-size: 0.9rem;
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 999px;
+    background: transparent; color: #d6d2e0; cursor: pointer;
+  }
+  button:hover { background: rgba(255,255,255,0.08); }
+</style>
+</head>
+<body>
+<canvas id="overlay"></canvas>
+<div class="wrap">
+  <h1>Review checklist — 05-super-speed/Harsha-brief.md</h1>
+  <div class="subtitle">Quiet responders: what we'd build instead of a number</div>
+
+  <div class="score-badge">
+    <div class="pct">75%</div>
+    <div class="meh">Composite: 4.5 / 6 — 🤷 eh, it's fine</div>
+    <div class="bar-track"><div class="bar-fill"></div></div>
+  </div>
+
+  <table>
+    <tr><td class="icon">❌</td><td class="label">1. Owner</td><td class="reason">No owner named anywhere; "To: Helen Achebe" is the audience, not the owner</td></tr>
+    <tr><td class="icon">🤷</td><td class="label">2. Definition of success</td><td class="reason">"No success measure" stated plainly, then two candidate metrics offered without picking one</td></tr>
+    <tr><td class="icon">✅</td><td class="label">3. Scope consistency</td><td class="reason">"what we'd build instead of a number" matches the end's explicit exclusions (routing fix, reweight, closing the ticket)</td></tr>
+    <tr><td class="icon">✅</td><td class="label">4. Problem before fix</td><td class="reason">Marcus's question + Mite/Gale data precede the proposed screens</td></tr>
+    <tr><td class="icon">✅</td><td class="label">5. Audience</td><td class="reason">"To: Helen Achebe"</td></tr>
+    <tr><td class="icon">✅</td><td class="label">6. Assumptions and gaps</td><td class="reason">"Before this builds" lists six explicit open questions</td></tr>
+  </table>
+
+  <div class="verdict">
+    <strong>Verdict:</strong> Not ready as-is, but close. Scope discipline, problem grounding, and honesty about open questions are all genuinely strong. The two real gaps are structural: name an owner, and pick one of the two success candidates already sitting in the doc instead of leaving both on the table.
+  </div>
+
+  <div class="poem-card">
+    <h2>🤷 75% — technically a brief 🤷</h2>
+    <div class="poem">75 percent. Not a disaster, not a win.
+The problem's explained before it begins.
+Scope holds steady, doesn't drift or roam,
+Helen's addressed, the audience is home.
+Six open questions, admirably bared —
+but nobody's named as the one who cared.
+And "no success measure" is spelled out in plain sight —
+so, solid effort. Technically... alright.</div>
+    <button onclick="drift()">🤷 Try to get excited again</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('overlay');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize);
+resize();
+
+const drabColors = ['#6b7280', '#9ca3af', '#7d8899', '#5b6472'];
+const glyphs = ['🤷', '😐', '🫤'];
+let particles = [];
+
+function makeParticle() {
+  const useGlyph = Math.random() < 0.25;
+  return {
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height * 0.4,
+    r: 5 + Math.random() * 4,
+    color: drabColors[Math.floor(Math.random() * drabColors.length)],
+    glyph: useGlyph ? glyphs[Math.floor(Math.random() * glyphs.length)] : null,
+    speedY: 0.6 + Math.random() * 0.8,
+    speedX: (Math.random() - 0.5) * 0.4,
+    rotation: Math.random() * 360,
+    spin: (Math.random() - 0.5) * 1.5,
+    opacity: 0.55 + Math.random() * 0.25
+  };
+}
+
+function drift() {
+  particles = particles.concat(Array.from({ length: 26 }, makeParticle));
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.speedX;
+    p.y += p.speedY;
+    p.rotation += p.spin;
+    ctx.save();
+    ctx.globalAlpha = p.opacity;
+    ctx.translate(p.x, p.y);
+    ctx.rotate((p.rotation * Math.PI) / 180);
+    if (p.glyph) {
+      ctx.font = `${p.r * 3}px serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(p.glyph, 0, 0);
+    } else {
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.r, -p.r * 0.35, p.r * 2, p.r * 0.7);
+    }
+    ctx.restore();
+  });
+  particles = particles.filter(p => p.y < canvas.height + 20);
+  requestAnimationFrame(animate);
+}
+
+drift();
+animate();
+</script>
+</body>
+</html>

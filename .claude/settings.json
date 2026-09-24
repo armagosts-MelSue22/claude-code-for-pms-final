@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(ls C:/Users/mss14/AppData/Local/Temp/roster_x/xl/ 2>&1)",
+      "Read(//c/Users/mss14/AppData/Local/Temp/roster_x/xl/**)",
+      "Read(//c/Users/mss14/AppData/Local/Temp/roster_x/xl/worksheets/**)",
+      "Bash(mkdir -p /tmp/handoff_x)",
+      "Bash(unzip -o \"00-rook/company/notes/handoff-from-priya.docx\" -d /tmp/handoff_x)",
+      "Bash(ls \"/c/Program Files \\(x86\\)/Microsoft/Edge/Application/\" 2>&1 | head -5; ls \"/c/Program Files/Google/Chrome/Application/\" 2>&1 | head -5)",
+      "Read(//c/Program Files \\\\\\(x86\\\\\\)/Microsoft/Edge/Application//**)",
+      "Read(//c/Program Files/Google/Chrome/**)",
+      "Bash(grep -c \"/Type /Page$\")",
+      "Bash(mkdir -p \"C:/Users/mss14/Projects/claude-code-for-pms-final/.claude/skills/review-checklist\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\mss14\\Projects\\claude-code-for-pms-final\\.claude\\skills"
+    ]
+  }
+}

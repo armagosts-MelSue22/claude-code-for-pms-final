@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Review checklist — fictitious-bad-brief.md</title>
+<style>
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #1a0e10;
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    color: #f5ece9;
+  }
+  canvas#overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .wrap {
+    position: relative;
+    z-index: 2;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
+  h1 { font-size: 1.3rem; text-align: center; margin-bottom: 0.25rem; }
+  .subtitle { text-align: center; color: #d9a3a3; font-size: 0.9rem; margin-bottom: 2rem; }
+  .score-badge { text-align: center; margin: 0 auto 2rem; }
+  .score-badge .pct { font-size: 3.5rem; font-weight: bold; color: #ff6b6b; }
+  .score-badge .tag { font-size: 1rem; color: #d9a3a3; letter-spacing: 0.08em; text-transform: uppercase; }
+  .bar-track {
+    width: 100%; height: 14px; background: rgba(255,255,255,0.1);
+    border-radius: 999px; overflow: hidden; margin-top: 0.75rem;
+  }
+  .bar-fill {
+    height: 100%; background: linear-gradient(90deg, #7a1f1f, #ff6b6b);
+    width: 0%; border-radius: 999px;
+  }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+  td { padding: 0.7rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: top; }
+  td.icon { font-size: 1.2rem; width: 2rem; text-align: center; }
+  td.label { font-weight: bold; white-space: nowrap; width: 12rem; }
+  td.reason { color: #e0bcbc; font-size: 0.92rem; }
+  .verdict {
+    background: rgba(255,255,255,0.05); border-left: 3px solid #ff6b6b;
+    padding: 1rem 1.25rem; border-radius: 6px; font-size: 0.95rem;
+    line-height: 1.6; margin-bottom: 2rem;
+  }
+  .poem-card {
+    background: rgba(40, 18, 18, 0.75); border: 2px dashed rgba(255,107,107,0.4);
+    border-radius: 16px; padding: 2rem; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .poem-card h2 { margin-top: 0; font-size: 1.1rem; color: #ff9f9f; }
+  .poem {
+    font-family: Georgia, 'Times New Roman', serif; font-size: 1.1rem;
+    line-height: 1.9; color: #f2d9d9; white-space: pre-line;
+  }
+  button {
+    margin-top: 1.5rem; padding: 0.6rem 1.4rem; font-size: 0.95rem;
+    border: none; border-radius: 999px; background: #ff6b6b;
+    color: #2a0f0f; cursor: pointer; font-weight: bold;
+  }
+  button:hover { background: #ff8a8a; }
+  @keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-6px, 2px); }
+    40% { transform: translate(5px, -3px); }
+    60% { transform: translate(-4px, 3px); }
+    80% { transform: translate(6px, -2px); }
+  }
+  .wrap.shaking { animation: shake 0.4s ease-in-out 2; }
+</style>
+</head>
+<body>
+<canvas id="overlay"></canvas>
+<div class="wrap" id="wrap">
+  <h1>Review checklist — 05-super-speed/fictitious-bad-brief.md</h1>
+  <div class="subtitle">Let's just add a "boost" button</div>
+
+  <div class="score-badge">
+    <div class="pct">0%</div>
+    <div class="tag">💥 Failed 💥</div>
+    <div class="bar-track"><div class="bar-fill"></div></div>
+  </div>
+
+  <table>
+    <tr><td class="icon">❌</td><td class="label">1. Owner</td><td class="reason">Nobody named; not even a "from" line</td></tr>
+    <tr><td class="icon">❌</td><td class="label">2. Definition of success</td><td class="reason">No metric, threshold, or observable outcome anywhere</td></tr>
+    <tr><td class="icon">❌</td><td class="label">3. Scope consistency</td><td class="reason">Opens as "a boost button," balloons mid-doc to timeout overrides, exposed routing weights, and a Supply-side override</td></tr>
+    <tr><td class="icon">❌</td><td class="label">4. Problem before fix</td><td class="reason">First sentence *is* the fix; only justification is "handlers have been asking," not evidence or mechanism</td></tr>
+    <tr><td class="icon">❌</td><td class="label">5. Audience</td><td class="reason">No named reader, role, or recipient anywhere</td></tr>
+    <tr><td class="icon">❌</td><td class="label">6. Assumptions and gaps</td><td class="reason">No open questions, no caveats, no acknowledgment of the routing-config precedent it contradicts</td></tr>
+  </table>
+
+  <div class="verdict">
+    <strong>Verdict:</strong> Do not send. Every check fails, and two of them aren't just process gaps — proposing runtime-adjustable routing weights and a Supply-side override reopens ground the team was explicitly told not to relitigate. This needs a full rewrite starting from an actual problem, not a polish pass.
+  </div>
+
+  <div class="poem-card">
+    <h2>💥 0 / 6 — 0% 💥</h2>
+    <div class="poem">Zero for six, a valiant swan dive —
+this brief didn't just fail, it barely arrived.
+No owner in sight, no reader in view,
+no measure of "worked," no problem in queue.
+One button asked for; by paragraph two
+it wanted the whole routing engine, too.
+Rest in pieces, small brief — nice try,
+now bring the problem before the reply.</div>
+    <button onclick="detonate()">💥 Try again (it won't help)</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('overlay');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize);
+resize();
+
+const glyphs = ['💥', '🔥', '🗑️'];
+let particles = [];
+
+function makeParticle() {
+  const useGlyph = Math.random() < 0.35;
+  return {
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height * 0.3,
+    r: 6 + Math.random() * 8,
+    color: Math.random() > 0.5 ? '#ff6b6b' : '#c0392b',
+    glyph: useGlyph ? glyphs[Math.floor(Math.random() * glyphs.length)] : null,
+    speedY: 3 + Math.random() * 4,
+    speedX: (Math.random() - 0.5) * 3,
+    rotation: Math.random() * 360,
+    spin: (Math.random() - 0.5) * 14,
+    shape: Math.random() > 0.5 ? 'rect' : 'shard'
+  };
+}
+
+function detonate() {
+  particles = particles.concat(Array.from({ length: 120 }, makeParticle));
+  const wrap = document.getElementById('wrap');
+  wrap.classList.remove('shaking');
+  void wrap.offsetWidth;
+  wrap.classList.add('shaking');
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.speedX;
+    p.y += p.speedY;
+    p.rotation += p.spin;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate((p.rotation * Math.PI) / 180);
+    if (p.glyph) {
+      ctx.font = `${p.r * 2.4}px serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(p.glyph, 0, 0);
+    } else if (p.shape === 'rect') {
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.r, -p.r * 0.4, p.r * 2, p.r * 0.8);
+    } else {
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.moveTo(0, -p.r);
+      ctx.lineTo(p.r * 0.6, p.r * 0.3);
+      ctx.lineTo(-p.r * 0.5, p.r * 0.6);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  });
+  particles = particles.filter(p => p.y < canvas.height + 20);
+  requestAnimationFrame(animate);
+}
+
+detonate();
+animate();
+</script>
+</body>
+</html>
