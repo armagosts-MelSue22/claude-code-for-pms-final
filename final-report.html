@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rook Dispatch — The Quiet Phone: what 4.2 broke, and how we fixed it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0b0d14;
@@ -20,6 +23,8 @@
     --blue: #4fa8ff;
     --purple: #c77dff;
     --orange: #f78c6b;
+    --comic: "Bangers", Georgia, "Times New Roman", serif;
+    --ink: #05060a;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -27,14 +32,87 @@
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
     line-height: 1.6;
     overflow-x: hidden;
+    position: relative;
   }
-  h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; margin: 0; }
+  /* subtle halftone-dot comic paper texture, dark-mode friendly */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1.4px);
+    background-size: 16px 16px;
+    opacity: 0.5;
+  }
+  h1 { font-family: "Inter", Georgia, serif; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
+  h2, h3 { font-family: var(--comic); font-weight: 400; margin: 0; letter-spacing: 0.015em; }
   a { color: var(--blue); }
-  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
-  section { padding: 90px 0; position: relative; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+  section { padding: 90px 0; position: relative; z-index: 1; }
+
+  /* comic zig-zag panel-break divider */
+  .zigzag {
+    height: 16px; position: relative; z-index: 2;
+    background:
+      linear-gradient(135deg, var(--bg) 25%, transparent 25%) 0 0 / 16px 16px,
+      linear-gradient(225deg, var(--bg) 25%, transparent 25%) 0 0 / 16px 16px;
+    background-color: var(--bg-2);
+  }
+  .zigzag.flip {
+    background:
+      linear-gradient(45deg, var(--bg-2) 25%, transparent 25%) 0 0 / 16px 16px,
+      linear-gradient(315deg, var(--bg-2) 25%, transparent 25%) 0 0 / 16px 16px;
+    background-color: var(--bg);
+  }
+
+  /* comic caption box, used for kickers/eyebrows */
+  .kicker, .eyebrow {
+    font-family: var(--comic) !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  /* punchy comic buttons — hard ink shadow, press animation */
+  .btn {
+    font-family: var(--comic); letter-spacing: 0.03em; font-size: 16px !important;
+    border: 2px solid var(--ink) !important;
+    box-shadow: 4px 4px 0 var(--ink);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+
+  /* comic burst / starburst shape, used for impact moments */
+  .burst {
+    display: inline-block; position: relative;
+  }
+  .burst::before {
+    content: "";
+    position: absolute; inset: -14px; z-index: -1;
+    background: var(--burst-color, var(--gold));
+    clip-path: polygon(50% 0%, 61% 35%, 95% 25%, 71% 52%, 100% 78%, 64% 72%, 50% 100%, 36% 72%, 0% 78%, 29% 52%, 5% 25%, 39% 35%);
+    opacity: 0.16;
+    animation: burstSpin 14s linear infinite;
+  }
+  @keyframes burstSpin { to { transform: rotate(360deg); } }
+
+  /* bouncy pop-in for stat numbers */
+  .pop { opacity: 0; transform: scale(0.4) rotate(-6deg); }
+  .pop.in { opacity: 1; transform: scale(1) rotate(0deg); transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+  /* comic issue ribbon on module cards */
+  .issue-ribbon {
+    position: absolute; top: 14px; right: -30px; z-index: 3;
+    background: var(--m-color, var(--teal)); color: var(--ink); font-family: var(--comic);
+    font-size: 12px; letter-spacing: 0.05em; padding: 3px 34px; transform: rotate(28deg);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  }
+
+  /* comic stamp, footer flourish */
+  .stamp {
+    display: inline-block; border: 3px solid var(--pink); color: var(--pink); font-family: var(--comic);
+    padding: 6px 16px; border-radius: 8px; transform: rotate(-4deg); letter-spacing: 0.06em;
+    font-size: 20px; margin-bottom: 14px; opacity: 0.9;
+  }
 
   /* progress bar */
   #progress {
@@ -161,8 +239,10 @@
     animation: phoneBuzz var(--cycle) ease-in-out var(--delay) infinite; transform-origin: 70% 30%;
   }
   .callout-tag {
-    display: inline-block; margin-top: 10px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--c-glow); opacity: 0; transform: translateY(6px);
+    display: inline-block; margin-top: 12px; font-family: var(--comic); font-size: 13px; letter-spacing: 0.03em;
+    color: var(--ink); background: var(--c-glow); padding: 5px 12px 6px;
+    clip-path: polygon(8% 0%, 92% 0%, 100% 30%, 96% 55%, 100% 82%, 88% 100%, 12% 100%, 0% 78%, 4% 45%, 0% 20%);
+    opacity: 0; transform: translateY(6px) scale(0.7) rotate(-4deg);
     animation: heroTag var(--cycle) ease-in-out var(--delay) infinite;
   }
   .hero-name { font-size: 13.5px; font-weight: 700; margin-top: 8px; }
@@ -188,8 +268,8 @@
     96% { transform: rotate(0deg) scale(1.15); opacity: 1; }
   }
   @keyframes heroTag {
-    0%, 87%, 100% { opacity: 0; transform: translateY(6px); }
-    93%, 96% { opacity: 1; transform: translateY(0); }
+    0%, 87%, 100% { opacity: 0; transform: translateY(6px) scale(0.7) rotate(-4deg); }
+    93%, 96% { opacity: 1; transform: translateY(0) scale(1.05) rotate(2deg); }
   }
   .roster-legend { margin-top: 22px; font-size: 12.5px; color: var(--text-mute); }
 
@@ -199,6 +279,7 @@
     display: grid; grid-template-columns: 64px 1fr; gap: 20px;
     background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--m-color, var(--teal));
     border-radius: 14px; padding: 22px 24px; margin-bottom: 22px;
+    position: relative; overflow: hidden;
   }
   .module-icon {
     width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
@@ -280,21 +361,22 @@
 <!-- HERO -->
 <section id="hero">
   <div class="wrap">
-    <span class="eyebrow">Prepared for Helen Achebe · Director of Product</span>
-    <h1>Four responders went quiet after 4.2.<br>Here's what I'd do about it — <span class="hl">and it's already built.</span></h1>
+    <span class="eyebrow">📖 Issue #7 · Prepared for Helen Achebe, Director of Product</span>
+    <h1>Four responders went quiet after 4.2.<br>Here's what I'd do about it — <span class="hl burst" style="--burst-color:var(--gold)">and it's already built.</span></h1>
     <p class="sub">A routing score that only ever falls, never recovers on its own, quietly parked four responders at the bottom of the list for weeks. Below is the fix, running — then the investigation and the process change that keeps it from happening again.</p>
     <div class="hero-ctas">
       <a class="btn primary" href="#proto">▶ Try the prototype</a>
       <a class="btn ghost" href="#journey">See how we found it</a>
     </div>
     <div class="stat-row">
-      <div class="stat-chip"><div class="num p">25%</div><div class="lbl">of the roster lost 80%+ of their weekly offers after 4.2 — while total offers barely moved</div></div>
-      <div class="stat-chip"><div class="num g">1 in 2.8M</div><div class="lbl">odds of climbing back out unaided, at the accept rate the four collapsed responders actually saw</div></div>
-      <div class="stat-chip"><div class="num t">6</div><div class="lbl">course modules of investigation, each with its own real finding, folded into one fix</div></div>
+      <div class="stat-chip"><div class="num p pop burst" style="--burst-color:var(--pink)">25%</div><div class="lbl">of the roster lost 80%+ of their weekly offers after 4.2 — while total offers barely moved</div></div>
+      <div class="stat-chip"><div class="num g pop burst" style="--burst-color:var(--gold)">1 in 2.8M</div><div class="lbl">odds of climbing back out unaided, at the accept rate the four collapsed responders actually saw</div></div>
+      <div class="stat-chip"><div class="num t pop burst" style="--burst-color:var(--teal)">6</div><div class="lbl">course modules of investigation, each with its own real finding, folded into one fix</div></div>
     </div>
   </div>
 </section>
 
+<div class="zigzag"></div>
 <!-- PROTOTYPE -->
 <section id="proto">
   <div class="wrap reveal">
@@ -314,6 +396,7 @@
   </div>
 </section>
 
+<div class="zigzag flip"></div>
 <!-- WHAT HAPPENED -->
 <section id="whathappened">
   <div class="wrap reveal">
@@ -328,7 +411,7 @@
       <div class="loop-arrow">→</div>
       <div class="loop-node" style="--m-color: var(--gold)"><b>Fewer offers</b>can't earn a callout to accept</div>
       <div class="loop-arrow">→</div>
-      <div class="loop-node" style="--m-color: var(--blue)"><b>No way to recover</b>+0.08 only on accept — nothing decays</div>
+      <div class="loop-node burst" style="--m-color: var(--blue); --burst-color: var(--blue);"><b>No way to recover</b>+0.08 only on accept — nothing decays</div>
     </div>
     <p class="loop-wrap-note">↩ loops back to the top — with no offers, there is nothing to accept</p>
 
@@ -345,6 +428,7 @@
   </div>
 </section>
 
+<div class="zigzag"></div>
 <!-- ROSTER -->
 <section id="roster">
   <div class="wrap reveal">
@@ -369,7 +453,7 @@
         <div class="hero-name">The Gale</div>
         <div class="hero-freq">13 → 21 offers/week — thriving</div>
         <div class="hero-tags"><span>flight</span><span>crowd-management</span></div>
-        <div class="callout-tag">📞 Called out!</div>
+        <div class="callout-tag">WHOOSH!</div>
       </div>
 
       <div class="hero-card" style="--cycle:22s; --delay:4s; --c-glow:#7fe7ef; --c-cape:#3aa7ad; --c-mask:#cdf3f5;">
@@ -389,7 +473,7 @@
         <div class="hero-name">Meteor Mite</div>
         <div class="hero-freq">11 → 1 offer/week (−79%)</div>
         <div class="hero-tags"><span>aquatic</span><span>cold-weather</span></div>
-        <div class="callout-tag">📞 Called out!</div>
+        <div class="callout-tag">ZAP!</div>
       </div>
 
       <div class="hero-card" style="--cycle:20s; --delay:9s; --c-glow:#2bc4c9; --c-cape:#1f6f78; --c-mask:#bfe9ea;">
@@ -407,7 +491,7 @@
         <div class="hero-name">The Undertow</div>
         <div class="hero-freq">−83% weekly offers — never recovered</div>
         <div class="hero-tags"><span>aquatic</span><span>hazmat-tolerant</span></div>
-        <div class="callout-tag">📞 Called out!</div>
+        <div class="callout-tag">SPLASH!</div>
       </div>
 
       <div class="hero-card" style="--cycle:24s; --delay:14s; --c-glow:#c77dff; --c-cape:#8a4fc7; --c-mask:#e6d3fb;">
@@ -425,7 +509,7 @@
         <div class="hero-name">Vesper</div>
         <div class="hero-freq">−81% weekly offers — never recovered</div>
         <div class="hero-tags"><span>de-escalation</span><span>structural-entry</span></div>
-        <div class="callout-tag">📞 Called out!</div>
+        <div class="callout-tag">GLOW!</div>
       </div>
 
       <div class="hero-card" style="--cycle:30s; --delay:2s; --c-glow:#ffce6b; --c-cape:#d99a2b; --c-mask:#ffe9bd;">
@@ -450,7 +534,7 @@
         <div class="hero-name">Farlight</div>
         <div class="hero-freq">−89% weekly offers — ~0% acceptance since release</div>
         <div class="hero-tags"><span>structural-entry</span><span>hazmat-tolerant</span></div>
-        <div class="callout-tag">📞 Called out!</div>
+        <div class="callout-tag">FLASH!</div>
       </div>
 
     </div>
@@ -458,6 +542,7 @@
   </div>
 </section>
 
+<div class="zigzag flip"></div>
 <!-- JOURNEY -->
 <section id="journey">
   <div class="wrap reveal">
@@ -466,6 +551,7 @@
     <p class="sec-lede">Each module of this course mapped to a real step in the investigation. Here's one finding and the exact prompt that produced it, straight from the prompt library saved at the end of each session.</p>
 
     <div class="module-card" style="--m-color: var(--teal)">
+      <div class="issue-ribbon">ISSUE #1</div>
       <div class="module-icon">🎬</div>
       <div>
         <div class="module-tag">Module 1 · Origin Story</div>
@@ -477,6 +563,7 @@
     </div>
 
     <div class="module-card" style="--m-color: var(--pink)">
+      <div class="issue-ribbon">ISSUE #2</div>
       <div class="module-icon">👂</div>
       <div>
         <div class="module-tag">Module 2 · Super Hearing</div>
@@ -488,6 +575,7 @@
     </div>
 
     <div class="module-card" style="--m-color: var(--gold)">
+      <div class="issue-ribbon">ISSUE #3</div>
       <div class="module-icon">⏪</div>
       <div>
         <div class="module-tag">Module 3 · Rewind</div>
@@ -499,6 +587,7 @@
     </div>
 
     <div class="module-card" style="--m-color: var(--blue)">
+      <div class="issue-ribbon">ISSUE #4</div>
       <div class="module-icon">🔎</div>
       <div>
         <div class="module-tag">Module 4 · X-Ray Vision</div>
@@ -510,6 +599,7 @@
     </div>
 
     <div class="module-card" style="--m-color: var(--orange)">
+      <div class="issue-ribbon">ISSUE #5</div>
       <div class="module-icon">⚡</div>
       <div>
         <div class="module-tag">Module 5 · Super Speed</div>
@@ -521,6 +611,7 @@
     </div>
 
     <div class="module-card" style="--m-color: var(--purple)">
+      <div class="issue-ribbon">ISSUE #6</div>
       <div class="module-icon">🤝</div>
       <div>
         <div class="module-tag">Module 6 · Sidekicks</div>
@@ -533,6 +624,7 @@
   </div>
 </section>
 
+<div class="zigzag"></div>
 <!-- THE FIX -->
 <section id="fix">
   <div class="wrap reveal">
@@ -552,6 +644,7 @@
   </div>
 </section>
 
+<div class="zigzag flip"></div>
 <!-- SKILL -->
 <section id="skill">
   <canvas id="skillConfetti"></canvas>
@@ -561,7 +654,7 @@
     <p class="sec-lede">The real lesson isn't just the decay bug. It's that a brief can look complete and still ship without an owner, a way to measure success, or an honest list of open questions — and nobody catches it until support tickets pile up. So the last thing built this course wasn't a product fix. It was a habit, turned into a tool.</p>
 
     <div class="scorecard-mini">
-      <div class="score-hero"><div class="pct">100%</div><div class="tag">review-checklist · this brief, this morning</div></div>
+      <div class="score-hero"><div class="pct pop burst" style="--burst-color:var(--teal)">100%</div><div class="tag">review-checklist · this brief, this morning</div></div>
       <div class="row"><span class="n">1</span>✅ <span>Owner — named, every time</span></div>
       <div class="row"><span class="n">2</span>✅ <span>Definition of success — a specific, checkable bar</span></div>
       <div class="row"><span class="n">3</span>✅ <span>Scope consistency — end matches the start</span></div>
@@ -583,6 +676,7 @@
 
 <footer>
   <div class="wrap">
+    <div class="stamp">TO BE CONTINUED...</div>
     <div class="sig">Rook Dispatch · PM debrief on Release 4.2</div>
     Built with Claude Code across six modules of investigation — every finding above traces back to a prompt, a data file, or a line of code in this repository.
   </div>
@@ -600,7 +694,7 @@
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('in'); });
   }, { threshold: 0.12 });
-  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+  document.querySelectorAll('.reveal, .pop').forEach(function (el) { io.observe(el); });
 
   // embed the actual prototype as a fully self-contained page, so this file
   // works standalone even if shared without the rest of the repo
